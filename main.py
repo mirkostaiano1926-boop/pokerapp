@@ -106,16 +106,56 @@ elif menu == "🚀 WAR ROOM":
     if eq >= odds: st.success("✅ CHIAMA")
     else: st.error("❌ PASSA")
 
-# ==========================================
-# 3. ARENA & 4. MASTER (BREVI)
-# ==========================================
-elif menu == "🎓 ARENA":
-    st.title("🎓 Arena")
-    if st.button("NUOVA MANO"): st.session_state.th = random.choice(["AA", "72o", "KJs", "44"])
-    if 'th' in st.session_state: st.subheader(f"Hai {st.session_state.th}. Cosa fai?")
+elif menu == "🎓 TITAN TRAINING":
+    st.title("🎓 Titan Training Lab")
+    if st.button("SFERRA UN ATTACCO ⚡"):
+        st.session_state.t_bb = random.randint(5, 25)
+        st.session_state.t_h = random.choice(["AA", "72o", "KJs", "44", "A5s", "QTo", "98s", "J5s", "K-Q off"])
+        st.session_state.t_pos = random.choice(["UTG", "BTN", "SB"])
+        # Logica IA avanzata
+        bb, mano, pos = st.session_state.t_bb, st.session_state.t_h, st.session_state.t_pos
+        is_p = (bb < 12 or mano == "AA" or (bb < 15 and "K" in mano and pos == "BTN") or (mano == "44" and pos == "SB"))
+        st.session_state.t_ans = "PUSH" if is_p else "FOLD"
+    
+    if 't_bb' in st.session_state:
+        st.subheader(f"STACK: {st.session_state.t_bb} BB | MANO: {st.session_state.t_h} | POS: {st.session_state.t_pos}")
+        c1, c2 = st.columns(2)
+        if c1.button("🔥 ALL-IN"):
+            if st.session_state.t_ans == "PUSH": st.success("🎯 BERSAGLIO DISTRUTTO!"); st.session_state.score += 1
+            else: st.error("💀 SEI STATO ELIMINATO!")
+            st.session_state.total += 1
+        if c2.button("📁 FOLD"):
+            if st.session_state.t_ans == "FOLD": st.success("🎯 DISCIPLINA DI FERRO!"); st.session_state.score += 1
+            else: st.error("💀 HAI PERSO VALORE!")
+            st.session_state.total += 1
+        st.sidebar.metric("Precisione Titan", f"{st.session_state.score}/{st.session_state.total}")
 
-elif menu == "⏳ MASTER":
-    st.title("⏳ Survival Status")
-    stk = st.number_input("Stack", value=5000)
-    bb = st.number_input("BB", value=400)
-    st.metric("M-Ratio", f"{stk/(bb*1.5):.1f}")
+# ==========================================
+# MODULO 4: NEURAL EXPLOIT LAB (CHICCA!)
+# ==========================================
+elif menu == "👺 NEURAL EXPLOIT LAB":
+    st.title("👺 Exploitative Intelligence Lab")
+    action = st.selectbox("L'avversario ha fatto:", ["Limp da UTG", "Mini-raise dal Bottone", "Donk-bet al Flop", "Check-Raise gigante"])
+    
+    st.markdown(f'<div class="exploit-card"><b>PROFILO PROBABILE:</b> {"Amatore Passivo" if "Limp" in action else "Manezzone Aggressivo"}</div>', unsafe_allow_html=True)
+    st.subheader("🛡️ Risposta del Dio:")
+    if "Limp" in action: st.info("Isola rilanciando 4x con mani medie. Prendi il piatto subito.")
+    if "Bottone" in action: st.info("Difendi il BB in modo aggressivo. Il suo range è larghissimo.")
+    if "Donk-bet" in action: st.warning("Spesso è debolezza. Rilancia per farlo foldare se il board è secco.")
+
+# ==========================================
+# MODULO 5 & 6: CHRONOS & REVENUE
+# ==========================================
+elif menu == "⏳ CHRONOS (M-Ratio)":
+    st.title("⏳ Chronos Survival Timer")
+    s, b, a = st.number_input("Stack", value=5000), st.number_input("BB", value=400), st.number_input("Ante", value=400)
+    m = s / (b + (b/2) + a)
+    st.metric("Tua Vita (M-Ratio)", f"{m:.1f}")
+    st.progress(min(m/20, 1.0))
+    if m < 6: st.error("PROTOCOLLO PUSH/FOLD ATTIVO.")
+
+elif menu == "💰 REVENUE CONTROL":
+    st.title("💰 Revenue & Bankroll Control")
+    br = st.number_input("Capitale Totale (€)", value=500)
+    st.metric("Buy-in Max (Safe Mode)", f"{br/100:.2f} €")
+    st.metric("Buy-in Max (Aggressive)", f"{br/50:.2f} €")
