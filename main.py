@@ -1,170 +1,218 @@
 import streamlit as st
-import random
 import pandas as pd
+import uuid
 
 # ==========================================
-# 1. SETUP TERMINALE DI COMANDO (PC WIDE)
+# 1. CONFIGURAZIONE BUSINESS & PAYWALL
 # ==========================================
-st.set_page_config(page_title="WAR MACHINE: JUDGMENT DAY", layout="wide", page_icon="💀")
+st.set_page_config(page_title="PROMETHEUS POKER APEX", layout="wide", page_icon="🧿")
 
-# CSS PROFESSIONALE PER PC (GTO WIZARD STYLE)
+if 'LICENSES' not in st.session_state:
+    st.session_state.LICENSES = {
+        "BOSS-000": {"user": "Admin", "device_id": None},
+        "VIP-001": {"user": "Cliente1", "device_id": None},
+    }
+
+if 'my_device_id' not in st.session_state:
+    st.session_state.my_device_id = str(uuid.uuid4())
+
+def check_license():
+    if st.session_state.get("logged_in", False): return True
+    st.markdown("<h1 style='text-align: center; color: #00e5ff; margin-top: 80px; text-shadow: 0 0 20px #00e5ff;'>🧿 PROMETHEUS APEX</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #888; font-size: 18px;'>Professional Tournament Engine</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.markdown('<div style="background: #111; padding: 30px; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">', unsafe_allow_html=True)
+        code_input = st.text_input("Inserisci Chiave di Licenza", type="password")
+        if st.button("SBLOCCA SISTEMA", use_container_width=True):
+            if code_input in st.session_state.LICENSES:
+                db_device = st.session_state.LICENSES[code_input]["device_id"]
+                if db_device is None or db_device == st.session_state.my_device_id:
+                    st.session_state.LICENSES[code_input]["device_id"] = st.session_state.my_device_id
+                    st.session_state["logged_in"] = True
+                    st.rerun()
+                else: st.error("❌ ACCESSO NEGATO: Licenza in uso su altro dispositivo.")
+            else: st.error("❌ LICENZA NON VALIDA.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    return False
+
+if not check_license(): st.stop()
+
+# ==========================================
+# 2. DESIGN PREMIUM (APEX THEME)
+# ==========================================
 st.markdown("""
 <style>
-    .stApp { background-color: #050505; color: #00ffcc; }
-    .gto-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px; width: 100%; max-width: 550px; margin: 0 auto; }
-    .gto-cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; 
-                border-radius: 2px; font-size: 10px; font-weight: bold; color: white; transition: 0.2s; }
-    .pair { background: #4a0000; border: 1px solid #ff0000; }
-    .suited { background: #002244; border: 1px solid #0077ff; }
-    .offsuit { background: #1a1a1a; border: 1px solid #333; }
-    .gto-open { background: #00ff88 !important; color: black !important; box-shadow: 0 0 15px #00ff88; border: 1px solid white !important; }
-    .gto-3bet { background: #ff00ff !important; box-shadow: 0 0 15px #ff00ff; border: 1px solid white !important; }
-    .gto-fold { opacity: 0.1; filter: grayscale(100%); }
-    .stMetric { border: 1px solid #333; background: #111; padding: 15px; border-radius: 10px; }
-    .ai-card { background: #0e1117; border-left: 5px solid #00ffcc; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+    .stApp { background-color: #06080a; color: #e2e8f0; }
+    .gto-container { display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px; max-width: 600px; margin: 0 auto; background: #0a0c10; padding: 10px; border-radius: 10px; border: 1px solid #1e222b; }
+    .gto-cell { display: flex; align-items: center; justify-content: center; aspect-ratio: 1/1; border-radius: 3px; font-size: 11px; font-weight: 800; color: #718096; background: #13161c; border: 1px solid #2d3748; transition: 0.15s; }
+    .pair-base { background: #2d1318; border-color: #4a1c23; }
+    .suited-base { background: #0d1b2a; border-color: #1a365d; }
+    .offsuit-base { background: #1a202c; }
+    .gto-open { background: #00e676 !important; color: #000 !important; box-shadow: 0 0 12px rgba(0,230,118,0.4); border-color: #69f0ae !important; z-index: 10; transform: scale(1.05); }
+    .gto-push { background: #ff3d00 !important; color: #fff !important; box-shadow: 0 0 12px rgba(255,61,0,0.6); border-color: #ff8a80 !important; z-index: 10; transform: scale(1.05); }
+    .metric-card { background: linear-gradient(145deg, #11141a, #0a0c10); border: 1px solid #2d3748; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .sizing-badge { display: inline-block; padding: 5px 10px; background: #1e222b; border-radius: 5px; border-left: 3px solid #00e5ff; font-weight: bold; margin-bottom: 5px;}
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. MOTORE STRATEGICO CORE
+# 3. IL CERVELLO DEI RANGE (DEEP LEARNING)
 # ==========================================
 RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
 
-RANGES = {
-    "UTG_OPEN": ["AA","KK","QQ","JJ","TT","99","88","77","AKs","AQs","AJs","ATs","AKo","AQo","KQs"],
-    "BTN_OPEN": ["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22",
-                 "AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s",
-                 "KQs","KJs","KTs","K9s","K8s","K7s","K6s","QJs","QTs","Q9s","JTs","J9s","T9s","98s","87s",
-                 "AKo","AQo","AJo","ATo","A9o","A8o","KQs","KJo","KTo","QJo","QTo","JTo"],
-    "3BET": ["AA","KK","QQ","AKs","A5s","A4s","KQs","AKo"],
-    "DEFENSE": ["TT","99","88","77","AQs","AJs","KQs","QJs","JTs","98s"]
+NASH_CORE = {
+    # DEEP STACK (>40 BB)
+    "Deep UTG (Apertura)": ["AA","KK","QQ","JJ","TT","99","88","77","AKs","AQs","AJs","ATs","A9s","KQs","KJs","QJs","JTs","T9s","AKo","AQo"],
+    "Deep BTN (Apertura)": ["22+","A2s+","K2s+","Q4s+","J6s+","T6s+","96s+","85s+","75s+","64s+","54s","A2o+","K8o+","Q9o+","J9o+","T9o"],
+    # PUSH/FOLD SHORT STACK (15 BB)
+    "15bb UTG (All-In)": ["22+","A2s+","K9s+","Q9s+","J9s+","T9s","ATo+","KJo+","QJo"],
+    "15bb BTN (All-In)": ["22+","A2s+","K2s+","Q2s+","J2s+","T5s+","95s+","85s+","74s+","64s+","54s","A2o+","K6o+","Q8o+","J8o+","T8o+","98o"]
 }
 
-if 'opponents' not in st.session_state: st.session_state.opponents = []
+def expand_range(range_list):
+    expanded = set()
+    for item in range_list:
+        expanded.add(item)
+        if item.endswith("+"):
+            b = item[:-1]
+            if len(b) == 2 and b[0] == b[1]:
+                idx = RANKS.index(b[0])
+                for i in range(idx + 1): expanded.add(RANKS[i] + RANKS[i])
+            elif len(b) == 3:
+                c1, c2, s = b[0], b[1], b[2]
+                i1, i2 = RANKS.index(c1), RANKS.index(c2)
+                for i in range(i2, i1, -1): expanded.add(c1 + RANKS[i] + s)
+    return expanded
 
 # ==========================================
-# 3. INTERFACCIA A 3 COLONNE (IL MOSTRO)
+# 4. SIDEBAR PROMETHEUS
 # ==========================================
-st.title("💀 POKER WAR MACHINE: JUDGMENT DAY")
-st.write("---")
+st.sidebar.markdown("<h2 style='color: #00e5ff; text-align: center; letter-spacing: 2px;'>🧿 PROMETHEUS</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<p style='text-align: center; font-size: 10px; color: #00e676;'>SYSTEM SECURED</p>", unsafe_allow_html=True)
+st.sidebar.divider()
 
-col_left, col_mid, col_right = st.columns([1.2, 1.5, 1.2])
+menu = st.sidebar.radio("MODULI TATTICI:", [
+    "📊 Preflop: Nash & Push/Fold", 
+    "🚀 Postflop: EV & Sizing", 
+    "🛡️ HUD: Opponent Exploit", 
+    "💰 Finance: ICM & Bankroll"
+])
 
-# ------------------------------------------
-# COLONNA 1: TACTICAL WAR ROOM
-# ------------------------------------------
-with col_left:
-    st.header("🚀 Tactical War Room")
-    with st.container():
-        st.subheader("Decision Engine")
-        pot = st.number_input("Piatto Totale", value=1000, step=100)
-        call = st.number_input("Costo Call", value=500, step=50)
-        outs = st.slider("I tuoi Outs", 1, 21, 9)
-        fase = st.selectbox("Fase della mano", ["Flop (x4)", "Turn (x2)"])
+# ==========================================
+# MODULO 1: PREFLOP ENGINE (NASH + PUSH/FOLD)
+# ==========================================
+if menu == "📊 Preflop: Nash & Push/Fold":
+    st.title("📊 Master Preflop Engine")
+    st.write("La mappa completa per il gioco profondo e per la fase Push/Fold (Sotto i 20 BB).")
+    
+    col_mat, col_info = st.columns([1.8, 1])
+    
+    with col_mat:
+        mode = st.selectbox("Seleziona Fase del Torneo e Posizione:", 
+            ["Seleziona...", "Deep UTG (Apertura)", "Deep BTN (Apertura)", "15bb UTG (All-In)", "15bb BTN (All-In)"])
         
-        # Calcolo Equity vs Odds
+        target_key = mode if mode != "Seleziona..." else None
+        active_hands = expand_range(NASH_CORE.get(target_key, [])) if target_key else set()
+        
+        grid_html = '<div class="gto-container">'
+        for r_idx, r in enumerate(RANKS):
+            for c_idx, c in enumerate(RANKS):
+                if r_idx == c_idx: hand, style = r+c, "pair-base"
+                elif c_idx > r_idx: hand, style = r+c+"s", "suited-base"
+                else: hand, style = c+r+"o", "offsuit-base"
+                
+                is_active = hand in active_hands
+                cl = f"gto-cell {style}"
+                if target_key: 
+                    if "All-In" in mode: cl += " gto-push" if is_active else " gto-fold"
+                    else: cl += " gto-open" if is_active else " gto-fold"
+                grid_html += f'<div class="{cl}">{hand}</div>'
+        grid_html += '</div>'
+        st.markdown(grid_html, unsafe_allow_html=True)
+
+    with col_info:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.subheader("📏 Bet Sizing Algorithm")
+        st.write("Dimensioni ottimali per rilanciare (Open Raise):")
+        st.markdown('<span class="sizing-badge">Stack > 40 BB:</span> Raise 2.2x - 2.5x', unsafe_allow_html=True)
+        st.markdown('<span class="sizing-badge">Stack 25-40 BB:</span> Raise 2.0x - 2.1x', unsafe_allow_html=True)
+        st.markdown('<span class="sizing-badge">Stack 15-25 BB:</span> Raise Minimo (2.0x)', unsafe_allow_html=True)
+        st.markdown('<span class="sizing-badge">Stack < 15 BB:</span> ALL-IN Diretto', unsafe_allow_html=True)
+        
+        st.divider()
+        st.subheader("🎯 3-Bet Sizing (Controrilancio)")
+        st.write("- **In Posizione (IP):** 3x la sua puntata.")
+        st.write("- **Fuori Posizione (OOP):** 4x la sua puntata.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# MODULO 2: POSTFLOP (EV + BOARD ANALYZER)
+# ==========================================
+elif menu == "🚀 Postflop: EV & Sizing":
+    st.title("🚀 Postflop Tactical Engine")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.subheader("🧠 Calcolo Equity (Regola 2/4)")
+        outs = st.slider("Outs Vincenti", 1, 20, 9)
+        fase = st.radio("Strada:", ["Flop (mancano 2 carte)", "Turn (manca 1 carta)"])
         eq = outs * 4 if "Flop" in fase else outs * 2
+        st.metric("Probabilità di Vittoria", f"{eq}%")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with c2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.subheader("💰 Pot Odds & Call")
+        pot = st.number_input("Piatto Attuale", value=1000, step=100)
+        call = st.number_input("Puntata da Chiamare", value=500, step=50)
         odds = (call / (pot + call)) * 100 if (pot+call) > 0 else 0
+        st.metric("Odds Matematiche Richieste", f"{odds:.1f}%")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.divider()
+    if call > 0:
         diff = eq - odds
-        
-        st.metric("Equity REALE", f"{eq}%", delta=f"{diff:.1f}%")
-        
-        if call > 0:
-            if eq >= odds:
-                st.success(f"✅ CALL PROFITTEVOLE (+{diff:.1f}%)")
-                if eq > 0:
-                    implied = (call * (100/eq)) - pot - call
-                    st.info(f"💎 Implied Odds: Vinci {implied:.0f} fiches dopo.")
-            else:
-                st.error(f"❌ FOLD MATEMATICO ({diff:.1f}%)")
+        if diff >= 0: st.success(f"✅ CALL APPROVATO. Mossa Profittevole (+{diff:.1f}% EV).")
+        else: st.error(f"❌ FOLD OBBLIGATORIO. Mossa a Perdere ({diff:.1f}% EV).")
 
-    st.divider()
-    st.subheader("🎯 Breakeven Bluff")
-    bluff_bet = st.slider("Tua puntata in bluff", 100, 5000, 500)
-    be_perc = (bluff_bet / (bluff_bet + pot)) * 100
-    st.warning(f"L'avversario deve foldare il **{be_perc:.1f}%** delle volte.")
+# ==========================================
+# MODULO 3 E 4: HUD, ICM E BANKROLL
+# ==========================================
+elif menu == "🛡️ HUD: Opponent Exploit":
+    st.title("🛡️ Profilazione Avversari (Live HUD)")
+    if 'ops' not in st.session_state: st.session_state.ops = []
+    
+    with st.form("profiler"):
+        nick = st.text_input("Nickname Avversario")
+        tipo = st.selectbox("Archetipo Identificato", ["Calling Station (Chiama troppo)", "Maniac (Aggredisce sempre)", "Nit (Solo mostri)", "Reg (Equilibrato)"])
+        if st.form_submit_button("ACQUISISCI BERSAGLIO"):
+            st.session_state.ops.append({"Target": nick, "Classe": tipo})
+            st.success("Target Acquisito.")
+            
+    if st.session_state.ops:
+        st.table(pd.DataFrame(st.session_state.ops))
+        st.info("💡 **Regola d'oro:** Non bluffare MAI le Calling Station. Ruba sempre i bui ai Nit.")
 
-# ------------------------------------------
-# COLONNA 2: SUPREME GTO MATRIX
-# ------------------------------------------
-with col_mid:
-    st.header("📊 GTO Intelligence Grid")
-    mode = st.selectbox("Seleziona Filtro Range:", 
-                        ["Visualizzazione", "Open UTG", "Open BTN", "3-Bet/Squeeze", "Difesa vs Raise"])
+elif menu == "💰 Finance: ICM & Bankroll":
+    st.title("💰 Finance & Bubble Survival")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.subheader("Bankroll Manager")
+        br = st.number_input("Bankroll Totale (€)", value=500.0)
+        st.metric("ABI (Avg Buy-In) Sicuro", f"{br/100:.2f} €")
+        st.caption("Usa la regola dell'1% per non andare mai in rovina (Broke).")
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Determiniamo quale lista usare
-    target_key = "UTG_OPEN" if "UTG" in mode else "BTN_OPEN" if "BTN" in mode else "3BET" if "3-Bet" in mode else "DEFENSE" if "Difesa" in mode else None
-    
-    # Costruzione Griglia HTML/CSS
-    grid_html = '<div class="gto-grid">'
-    for r_idx, r in enumerate(RANKS):
-        for c_idx, c in enumerate(RANKS):
-            if r_idx == c_idx: hand, style = r+c, "pair"
-            elif c_idx > r_idx: hand, style = r+c+"s", "suited"
-            else: hand, style = c+r+"o", "offsuit"
-            
-            is_active = False
-            if target_key:
-                if hand in RANGES[target_key]: is_active = True
-            
-            cl = f"gto-cell {style}"
-            if target_key:
-                if "3-Bet" in mode: cl += " gto-3bet" if is_active else " gto-fold"
-                else: cl += " gto-open" if is_active else " gto-fold"
-            
-            grid_html += f'<div class="{cl}">{hand}</div>'
-    grid_html += '</div>'
-    
-    st.markdown(grid_html, unsafe_allow_html=True)
-    st.divider()
-    st.info("🔴 Coppie | 🔵 Suited | ⚫ Offsuit | 🟢/🟣 Range Attivo")
-
-# ------------------------------------------
-# COLONNA 3: AI ADVISOR & INTEL
-# ------------------------------------------
-with col_right:
-    st.header("🤖 Neural Lab")
-    
-    # Board Analyzer
-    with st.expander("🧬 Board Analyzer", expanded=True):
-        texture = st.selectbox("Texture Flop", ["Secco (K-7-2)", "Bagnato (9-10-J)", "Accoppiato (8-8-3)"])
-        forza = st.selectbox("Tua Forza", ["Aria", "Coppia Media", "Top Pair", "Mostro"])
-        
-        if "Secco" in texture:
-            if "Aria" in forza: st.success("Punta 1/3 Pot (C-Bet)")
-            else: st.info("Punta per valore")
+    with c2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.subheader("ICM Bubble Factor")
+        distanza = st.selectbox("Distanza dai premi (Bolla):", ["Lontana", "Vicina", "Scoppio Bolla (Mancano 2-3 out)"])
+        if distanza == "Scoppio Bolla (Mancano 2-3 out)":
+            st.error("🚨 ALLERTA ICM: Gioca chiuso. Folda anche AK se qualcuno va all-in prima di te e hai uno stack medio. Fai eliminare gli short stack.")
         else:
-            if "Aria" in forza: st.error("Check / Arrenditi")
-            else: st.warning("Punta 3/4 Pot (Protezione)")
-
-    # Intel Hub
-    st.subheader("🕵️ Opponent Intel")
-    with st.form("intel_form", clear_on_submit=True):
-        n = st.text_input("Nick Avversario")
-        t = st.selectbox("Tipo", ["Fish", "Reg", "Nit", "Maniaco"])
-        note = st.text_input("Note veloci")
-        if st.form_submit_button("REGISTRA"):
-            st.session_state.opponents.append({"Nick": n, "Tipo": t, "Note": note})
-    
-    if st.session_state.opponents:
-        st.table(pd.DataFrame(st.session_state.opponents).tail(3))
-
-# ==========================================
-# 4. FOOTER SURVIVAL MASTER
-# ==========================================
-st.write("---")
-f1, f2, f3 = st.columns(3)
-with f1:
-    st.subheader("⏳ M-Ratio")
-    stk = st.number_input("Tuo Stack", value=5000)
-    bb = st.number_input("BB attuale", value=400)
-    m = stk / (bb * 1.5)
-    st.write(f"Tua autonomia: **{m:.1f} giri di tavolo**")
-with f2:
-    st.subheader("💰 Bankroll")
-    br = st.number_input("Conto Totale", value=500)
-    st.write(f"Buy-in Max Sicuro: **{br/100:.2f} €**")
-with f3:
-    st.subheader("🧠 Mental Check")
-    tilt = st.select_slider("Stato Mentale", options=["Zen", "Calmo", "Irritato", "TILT"])
-    if tilt == "TILT": st.error("🆘 CHIUDI I TAVOLI ORA!")
+            st.success("🟢 ICM Normale: Gioca per accumulare fiches (ChipEV).")
+        st.markdown('</div>', unsafe_allow_html=True)
